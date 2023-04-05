@@ -54,7 +54,6 @@ wave.1 <- wave.1 %>%
 
 # determine age at time of survey ---------------------------------------
 
-
 wave.1$h1gi1m <- ifelse(wave.1$h1gi1m == 96, NA, wave.1$h1gi1m)
 wave.1$h1gi1y <- ifelse(wave.1$h1gi1m == 96, NA, wave.1$h1gi1y + 1900)
 
@@ -63,11 +62,10 @@ wave.1$bday <- as.Date(paste0(wave.1$h1gi1y, '-', wave.1$h1gi1m, '-1'))
 wave.1$survey.date <- as.Date(paste0(wave.1$iyear + 1900, '-', 
                                      wave.1$imonth, '-', wave.1$iday))
 
-
 wave.1$age.m <- as.numeric(difftime(wave.1$survey.date, 
                                     wave.1$bday, units = "days")) / 30.44
 
-wave.1$age.m  <- round(wave.1$age.m  * 2) / 2 # round to nearest half
+wave.1$age.m  <- round(wave.1$age.m) + 0.5
 
 # Overweight was defined as a body mass index (BMI) 
 # (calculated as weight in kilograms divided by the square of height in meters) 
@@ -75,20 +73,31 @@ wave.1$age.m  <- round(wave.1$age.m  * 2) / 2 # round to nearest half
 
 # https://www.cdc.gov/growthcharts/html_charts/bmiagerev.htm#males
 
+bmi.table.f <- readxl::read_xlsx('src/data/BMI Tables.xlsx',
+                                 sheet = "Females, 2-20 years") %>%
+  rename(age.m = `Age (in months)`) %>%
+  mutate(bio_sex = 2)
 
+bmi.table.m <- readxl::read_xlsx('src/data/BMI Tables.xlsx',
+                                 sheet = "Males, 2-20 years") %>%
+  rename(age.m = `Age (in months)`) %>%
+  mutate(bio_sex = 1)
 
+bmi.table <- rbind(bmi.table.f, bmi.table.m)
 
+wave.1 <- merge(wave.1, bmi.table, by =c('bio_sex', 'age.m'), all.x=T)
 
-wave.1 %>% 
-  filter(bio_sex == 1) %>%
+# determine overweight and obese ------------------------------------------
+
+wave.1 <- wave.1 %>%
   mutate(overweight = case_when(
-    
-  ))
-
-
-# determine overweight ---------------------------------------------------
-
-
+                      bmi >= `90th Percentile BMI Value` ~ 1,
+                      is.na(bmi) == T ~ NA,
+                      TRUE ~ 0),
+         obese = case_when(
+                      bmi >= `95th Percentile BMI Value` ~ 1,
+                      is.na(bmi) == T ~ NA,
+                      TRUE ~ 0))
 
 
 # construct race variable -------------------------------------------------
