@@ -2,9 +2,9 @@
 
 ### Authors
 
-- Jacob Jameson, MS
-- Diana Mcleod, BA
-- Nathaniel J. Glasser, MD MPP
-- Harold Pollack, PhD MPP
+- Jacob Jameson
+- Diana Mcleod
+- Nathaniel J. Glasser
+- Harold Pollack
 
 ### Abstract
